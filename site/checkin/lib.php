@@ -165,7 +165,55 @@ function llama_normalize_park(string $park): string
     return $lookup[$k] ?? $park;
 }
 
+// Private settings about participants, kept in the data folder (never in
+// the repository because it contains emails): ~/llama-data/people.json
+// {
+//   "same_person":   {"other@address": "main@address", ...},
+//                    one person who checked in with more than one email
+//   "finished":      {"main@address": "YYYY-MM-DD", ...},
+//                    finishers verified by hand (photos, before the new
+//                    check-in); listed in challenge.html, left off the leaderboard
+//   "display_names": {"main@address": "Naomi", ...}
+//                    shown on the leaderboard instead of initials
+// }
+function llama_people(): array
+{
+    static $people = null;
+    if ($people === null) {
+        $people = ['same_person' => [], 'finished' => [], 'display_names' => []];
+        $file = llama_data_dir() . '/people.json';
+        if (is_file($file)) {
+            $data = json_decode((string)file_get_contents($file), true);
+            if (is_array($data)) {
+                foreach (array_keys($people) as $k) {
+                    if (isset($data[$k]) && is_array($data[$k])) {
+                        $people[$k] = array_change_key_case($data[$k], CASE_LOWER);
+                    }
+                }
+            } else {
+                error_log('LLAMA: people.json is not valid JSON; ignoring it');
+            }
+        }
+    }
+    return $people;
+}
+
+// The address a person's check-ins are grouped under.
+function llama_main_email(string $email): string
+{
+    $email = strtolower($email);
+    return strtolower(llama_people()['same_person'][$email] ?? $email);
+}
+
+// Date (YYYY-MM-DD) for a finisher verified by hand, or null.
+function llama_verified_finish(string $email): ?string
+{
+    return llama_people()['finished'][strtolower($email)] ?? null;
+}
+
 // Read every record. Skips blank or damaged lines rather than failing.
+// 'email' is the person's main address (see same_person in people.json);
+// 'email_raw' is the address they actually typed.
 function llama_read_all(): array
 {
     $file = llama_checkins_file();
@@ -186,6 +234,8 @@ function llama_read_all(): array
         $rec = json_decode($line, true);
         if (is_array($rec) && isset($rec['email'], $rec['park'], $rec['mode'])) {
             $rec['park'] = llama_normalize_park((string)$rec['park']);
+            $rec['email_raw'] = (string)$rec['email'];
+            $rec['email'] = llama_main_email((string)$rec['email']);
             $records[] = $rec;
         }
     }
@@ -199,9 +249,10 @@ function llama_park_name(string $key): string
     return LLAMA_PARKS[$key] ?? $key;
 }
 
-// Per-person totals for the regular challenge, keyed by email.
+// Per-person totals for the regular challenge, keyed by main email.
 // Returns: email => ['initials', 'parks' (challenge parks, sorted by name),
-//                     'other' (non-challenge parks), 'last' (ISO time or null)]
+//                     'other' (non-challenge parks), 'last' (ISO time or null),
+//                     'emails' (every address used)]
 function llama_challenge_people(array $records): array
 {
     $people = [];
@@ -211,9 +262,10 @@ function llama_challenge_people(array $records): array
         }
         $email = $r['email'];
         if (!isset($people[$email])) {
-            $people[$email] = ['initials' => '', 'parks' => [], 'other' => [], 'last' => null];
+            $people[$email] = ['initials' => '', 'parks' => [], 'other' => [], 'last' => null, 'emails' => []];
         }
         $p =& $people[$email];
+        $p['emails'][$r['email_raw'] ?? $email] = true;
         if (!empty($r['initials'])) {
             $p['initials'] = $r['initials'];
         }
@@ -230,6 +282,7 @@ function llama_challenge_people(array $records): array
     foreach ($people as &$p) {
         $p['parks'] = array_keys($p['parks']);
         $p['other'] = array_keys($p['other']);
+        $p['emails'] = array_keys($p['emails']);
         usort($p['parks'], function ($a, $b) {
             return strcmp(llama_park_name($a), llama_park_name($b));
         });
@@ -239,17 +292,28 @@ function llama_challenge_people(array $records): array
 }
 
 // Public leaderboard rows: initials only, never emails.
+// Shows people still working on the challenge: finishers (verified by hand
+// in people.json, or through the website check-in) are listed in the
+// Finishers table instead.
 // Sorted by number of challenge parks (most first), then initials.
 // Rank is shared by people with the same count, as on the old leaderboard.
 function llama_leaderboard(array $records): array
 {
+    $webFinished = [];
+    foreach (llama_finishers($records) as $f) {
+        if ($f['mode'] === 'challenge') {
+            $webFinished[$f['email']] = true;
+        }
+    }
+    $names = llama_people()['display_names'];
     $rows = [];
-    foreach (llama_challenge_people($records) as $p) {
-        if (count($p['parks']) === 0) {
+    foreach (llama_challenge_people($records) as $email => $p) {
+        if (count($p['parks']) === 0 || isset($webFinished[$email]) || llama_verified_finish($email) !== null) {
             continue;
         }
+        $shown = $names[$email] ?? ($p['initials'] !== '' ? $p['initials'] : '?');
         $rows[] = [
-            'initials' => $p['initials'] !== '' ? $p['initials'] : '?',
+            'initials' => $shown,
             'count' => count($p['parks']),
             'parks' => array_map('llama_park_name', $p['parks']),
             'last' => $p['last'] ? substr($p['last'], 0, 10) : null,
@@ -355,7 +419,7 @@ function llama_finishers(array $records): array
             $seen[$email][$r['park']] = true;
             if (!isset($done[$email]) && count($seen[$email]) >= LLAMA_FINISH_COUNT) {
                 $done[$email] = true;
-                if ($isWeb) {
+                if ($isWeb && llama_verified_finish($email) === null) {
                     $finishers[] = [
                         'key' => 'challenge:' . $email,
                         'mode' => 'challenge',

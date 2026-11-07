@@ -71,9 +71,10 @@
         table.appendChild(tr);
       });
       table.hidden = false;
-      status.textContent = rows.length + " participants. Leaderboard last updated " +
+      status.textContent = rows.length + " participants working on the challenge. Leaderboard last updated " +
         new Date(data.updated).toLocaleDateString() +
-        ". Participants are ranked by the number of challenge locations visited; people with the same number share a rank.";
+        ". Participants are ranked by the number of challenge locations visited; people with the same number share a rank. " +
+        "Finishers are listed in the Finishers table above.";
     })
     .catch(function () {
       status.textContent = "The leaderboard is not available right now.";

@@ -86,6 +86,26 @@ curl -s -o /dev/null -w "%{http_code}\n" https://www.llamasystem.org/checkin/adm
 
 Open the report in a browser, log in, and check that the TEST entry is there. Then remove the test line with `nano ~/llama-data/checkins.jsonl`.
 
+## Participant settings (people.json)
+
+`~/llama-data/people.json` on the server holds the few settings that need people's email addresses. It is private and is never put in the repository.
+
+```json
+{
+  "same_person":   {"second@address": "main@address"},
+  "finished":      {"main@address": "2021-05-07"},
+  "display_names": {"main@address": "Naomi"}
+}
+```
+
+| Section | What it does |
+|---|---|
+| `same_person` | Combines check-ins from someone who used more than one email address |
+| `finished` | Marks people verified as finishers before the new check-in (mostly by photo). They show as finished on the report and are left off the public leaderboard. They must also be listed in the Finishers table in `challenge.html` |
+| `display_names` | Shows a name on the leaderboard instead of initials |
+
+Changes take effect at the next 10-minute update. People who finish through the check-in don't need an entry here.
+
 ## Changing the site
 
 1. Commit and push the change to `main` on GitHub.

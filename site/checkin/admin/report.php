@@ -36,14 +36,49 @@ if (($_GET['format'] ?? '') === 'csv') {
 }
 
 $people = llama_challenge_people($records);
+
+// Finished: verified by hand (people.json) or through the website check-in.
+$webFinish = [];
+foreach (llama_finishers($records) as $f) {
+    if ($f['mode'] === 'challenge') {
+        $webFinish[$f['email']] = $f['date'];
+    }
+}
+function finish_status(string $email, array $webFinish): string
+{
+    $verified = llama_verified_finish($email);
+    if ($verified !== null) {
+        return 'Finished ' . us_date($verified) . ' (verified)';
+    }
+    if (isset($webFinish[$email])) {
+        return 'Finished ' . us_date($webFinish[$email]) . ' (check-in)';
+    }
+    return '';
+}
+function us_date(?string $ymd): string
+{
+    if (!$ymd || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) {
+        return (string)$ymd;
+    }
+    return (int)$m[2] . '/' . (int)$m[3] . '/' . $m[1];
+}
+// Finishers first, then by number of parks.
 uasort($people, function ($a, $b) {
     return count($b['parks']) <=> count($a['parks']);
 });
+$finishedFirst = [];
+$others = [];
+foreach ($people as $email => $p) {
+    if (finish_status($email, $webFinish) !== '') {
+        $finishedFirst[$email] = $p;
+    } else {
+        $others[$email] = $p;
+    }
+}
+$people = $finishedFirst + $others;
 $ultra = llama_ultra_people($records);
 $total = count(LLAMA_CHALLENGE_PARKS);
-$finishers = array_filter($people, function ($p) {
-    return count($p['parks']) >= LLAMA_FINISH_COUNT;
-});
+$finishers = $finishedFirst;
 
 function show_time(?string $t): string
 {
@@ -86,19 +121,20 @@ function show_time(?string $t): string
 <div class="summary">
   <div><b><?= count($records) ?></b> check-ins</div>
   <div><b><?= count($people) ?></b> people (challenge)</div>
-  <div><b><?= count($finishers) ?></b> with <?= LLAMA_FINISH_COUNT ?>+ of <?= $total ?> parks</div>
+  <div><b><?= count($finishers) ?></b> finishers with check-in records</div>
   <div><b><?= count($ultra) ?></b> people (ultra)</div>
   <div><a href="?format=csv">Download all check-ins (CSV)</a></div>
 </div>
 
 <h2>LLAMA Challenge</h2>
-<p class="muted">Highlighted rows have reached <?= LLAMA_FINISH_COUNT ?> parks. People who reach <?= LLAMA_FINISH_COUNT ?> through website check-ins are added to the Finishers list on challenge.html automatically, and an email notice is sent so their patch can be mailed.</p>
+<p class="muted">Finishers are highlighted and listed first. "Verified" finishers completed the challenge before the new check-in (mostly by photo), so their check-ins only show part of their visits; they are set in ~/llama-data/people.json. People who reach <?= LLAMA_FINISH_COUNT ?> through website check-ins are finished automatically, added to the Finishers list on challenge.html, and an email notice is sent so their patch can be mailed. Finishers are not shown on the public leaderboard.</p>
 <div class="wrap"><table>
-  <tr><th>Initials</th><th>Email</th><th class="num">Parks</th><th>Challenge parks visited</th><th>Other locations</th><th>Last check-in</th></tr>
-  <?php foreach ($people as $email => $p): ?>
-  <tr class="<?= count($p['parks']) >= LLAMA_FINISH_COUNT ? 'done' : '' ?>">
+  <tr><th>Initials</th><th>Email</th><th>Status</th><th class="num">Parks checked in</th><th>Challenge parks visited</th><th>Other locations</th><th>Last check-in</th></tr>
+  <?php foreach ($people as $email => $p): $status = finish_status($email, $webFinish); ?>
+  <tr class="<?= $status !== '' ? 'done' : '' ?>">
     <td><?= llama_h($p['initials']) ?></td>
-    <td><?= llama_h($email) ?></td>
+    <td><?= implode('<br>', array_map('llama_h', $p['emails'])) ?></td>
+    <td><?= llama_h($status) ?></td>
     <td class="num"><?= count($p['parks']) ?> / <?= $total ?></td>
     <td><?= llama_h(implode(', ', array_map('llama_park_name', $p['parks']))) ?></td>
     <td class="muted"><?= llama_h(implode(', ', array_map('llama_park_name', $p['other']))) ?></td>
