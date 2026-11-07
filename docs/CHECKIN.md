@@ -15,6 +15,8 @@ Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs c
 - The leaderboard and the Finishers list show initials, park names and dates only.
 - Emails appear only on the password-protected report at `/checkin/admin/report.php`, which also offers a CSV download.
 
+**Report page login:** see the **"llama report page"** entry in 1Password.
+
 **What stays manual:**
 - Mailing the patch itself, and collecting the $5.
 - Earlier finishers (2021–2025) were verified by hand and are written directly in `challenge.html`.
@@ -35,7 +37,7 @@ Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs c
 
 ## One-time setup on DreamHost
 
-Log in with `ssh into the DreamHost account (login in 1Password)`.
+Log in to the DreamHost account with SSH. The server name, username and password are in 1Password.
 
 ### 1. Give the server read-only access to the repository
 
@@ -59,7 +61,7 @@ sh tools/setup.sh
 **The setup script:**
 1. Checks PHP.
 2. Backs up and imports the old check-ins.
-3. Asks once for a report username and password. Save these in 1Password.
+3. Asks once for a report username and password. Save these in 1Password as the **"llama report page"** entry.
 4. Publishes the site.
 5. Builds the leaderboard.
 6. Adds the 10-minute cron job below the DreamHost block.

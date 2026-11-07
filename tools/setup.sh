@@ -69,7 +69,7 @@ else
     read -r REPORT_USER
     htpasswd -c "$HTPASSWD_FILE" "$REPORT_USER"
     chmod 644 "$HTPASSWD_FILE"
-    echo "Save this username and password in 1Password."
+    echo "Save this username and password in 1Password as the \"llama report page\" entry."
 fi
 
 step "4. Publishing site files to $WEB"
