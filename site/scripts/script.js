@@ -460,7 +460,7 @@ if (window.location.search.indexOf("place") > -1) {
   modaltitle.innerHTML = comli.popup.title;
   modaltext.innerHTML = comli.popup.text;
   modalimg.src = comli.popup.image;
-  modaldir.href = "https://directions-api.jonahmorgan1.repl.co/?place=" + comli.coords + "";
+  modaldir.href = directionsUrl(comli.coords);
   modal.style.display = "block";
   markitdownform(window.location.search.replace("?place=", ""));
 }
@@ -469,7 +469,7 @@ if (window.location.search.indexOf("point") > -1) {
   modaltitle.innerHTML = comli.popup.title;
   modaltext.innerHTML = comli.popup.text;
   modalimg.src = comli.popup.image;
-  modaldir.href = "https://directions-api.jonahmorgan1.repl.co/?place=" + comli.coords + "";
+  modaldir.href = directionsUrl(comli.coords);
   modal.style.display = "block";
 }
 if (window.location.search.indexOf("ultra") > -1) {
@@ -477,69 +477,84 @@ if (window.location.search.indexOf("ultra") > -1) {
   modaltitle.innerHTML = comli.popup.title;
   modaltext.innerHTML = comli.popup.text;
   modalimg.src = comli.popup.image;
-  modaldir.href = "https://directions-api.jonahmorgan1.repl.co/?place=" + comli.coords + "";
+  modaldir.href = directionsUrl(comli.coords);
   modal.style.display = "block";
   markitdownform2(window.location.search.replace("?ultra=", ""));
 }
-function sendit(initials, email, park) {
-  var url = "https://llamasystem.org:4040";
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", url);
-  xhr.setRequestHeader("Content-Type", "application/xml");
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      console.log(xhr.status);
-      console.log(xhr.responseText);
-    }
-  };
-  var data = "<user><initials>" + initials + "</initials><email>" + email + "</email><park>" + park + "</park></user>";
-  xhr.send(data);
+// Directions open in Google Maps. (The old Replit directions service no longer exists.)
+function directionsUrl(coords) {
+  return "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(coords);
 }
-function sendit2(initials, email, park) {
-  var url = "https://llamasystem.org:5050";
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", url);
-  xhr.setRequestHeader("Content-Type", "application/xml");
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      console.log(xhr.status);
-      console.log(xhr.responseText);
+
+// Show a short message in the small "Ok" popup.
+function showMessage(text) {
+  alerttext.textContent = text;
+  alertel.style.display = "block";
+}
+
+// Send a check-in to the PHP script on this website (checkin/submit.php).
+// mode is "challenge" or "ultra".
+function sendCheckin(mode, initials, email, park, button) {
+  var body = new URLSearchParams();
+  body.append("mode", mode);
+  body.append("initials", initials);
+  body.append("email", email);
+  body.append("park", park);
+  body.append("website", "");
+  button.disabled = true;
+  fetch("/checkin/submit.php", { method: "POST", body: body })
+    .then(function (response) {
+      return response.json().catch(function () {
+        return { ok: false, error: "The check-in service did not respond correctly. Please email llamasystem@gmail.com." };
+      });
+    })
+    .then(function (result) {
+      button.disabled = false;
+      if (result.ok) {
+        modal3.style.display = "none";
+        showMessage("Your visit to " + (result.park || "this location") + " was recorded. Thanks for taking the LLAMA Challenge!");
+      } else {
+        showMessage(result.error || "Your check-in could not be saved. Please try again.");
+      }
+    })
+    .catch(function () {
+      button.disabled = false;
+      showMessage("Could not reach the check-in service. Please check your connection and try again.");
+    });
+}
+
+function checkinForm(mode, place) {
+  var name = mode === "ultra" ? "Ultra LLAMA Challenge" : "LLAMA Challenge";
+  var goal = mode === "ultra"
+    ? "visit at least 20 of the 24 locations listed on the challenge page in a single day"
+    : "visit at least 20 of the 24 locations listed on the challenge page";
+  modaltitle3.innerHTML = "Would you like today's visit to count towards the " + name + "? If so, enter your email address and initials below.";
+  modaltext3.innerHTML = "<p>The " + name + " is a fun way to explore our parks: " + goal + " and earn a llama patch designed by our students! " +
+    "Your email address is only used to keep track of your visits and is never shown on the website; the leaderboard shows initials only. " +
+    "For more information, see the <a href='/challenge.html' target='_blank'>challenge page</a>. " +
+    "Click the X at the top right to learn more about the location you're at.</p>" +
+    "<input type='email' id='subinput' size='40' placeholder='your email address' autocomplete='email'>" +
+    "<input type='text' id='subinput2' size='20' placeholder='your initials' maxlength='10' autocomplete='off'>" +
+    "<button id='sub'>Submit</button>";
+  modal3.style.display = "block";
+  var sub = document.getElementById("sub");
+  var subinput = document.getElementById("subinput");
+  var subinput2 = document.getElementById("subinput2");
+  sub.onclick = function () {
+    var email = subinput.value.trim().toLowerCase();
+    var initials = subinput2.value.trim().toUpperCase();
+    if (email && initials) {
+      sendCheckin(mode, initials, email, place, sub);
+    } else {
+      showMessage("Please fill in both your email address and your initials.");
     }
   };
-  var data = "<user><initials>" + initials + "</initials><email>" + email + "</email><park>" + park + "</park></user>";
-  xhr.send(data);
 }
 function markitdownform(place) {
-  modaltitle3.innerHTML = "Would you like today's visit to count towards the LLAMA Challenge? If so, please put your email address below.";
-  modaltext3.innerHTML = "<p>The LLAMA Challenge provides a fun way to motivate residents to visit at least 20 of the 24 locations listed on the challenge page.  Once completed, you receive a llama patch designed by us! Email addresses are used to verify that you have visited the park. (note: all email addresses are kept in a secure location called Replit.com) For more information on the LLAMA Challenge, click <a href='http://www.shenfll.com/challenge.html' target='_blank'>here.</a> Click the X on the top right of this to learn more about the location you're at!</p><input type='email' id='subinput' size='40' placeholder='provide your email here'><input type='email' id='subinput2' size='20' placeholder='and your initials here'><button id='sub'>Submit</button>";
-  modal3.style.display = "block";
-  var sub = document.getElementById("sub");
-  var subinput = document.getElementById("subinput");
-  var subinput2 = document.getElementById("subinput2");
-  sub.onclick = function () {
-    if (subinput.value && subinput2.value) {
-      sendit(subinput2.value.toUpperCase(), subinput.value.toLowerCase(), place);
-      modal3.style.display = "none";
-    } else {
-      alert("please fill in both form fields before submitting");
-    }
-  }
+  checkinForm("challenge", place);
 }
 function markitdownform2(place) {
-  modaltitle3.innerHTML = "Would you like today's visit to count towards the Ultra LLAMA Challenge? If so, please put your email address below.";
-  modaltext3.innerHTML = "<p>The Ultra LLAMA Challenge provides a fun way to motivate residents to visit at least 20 of the 24 locations listed on the challenge page in a single day.  Once completed, you receive a llama patch designed by us! Email addresses are used to verify that you have visited the park. (note: all email addresses are kept in a secure location called Replit.com) For more information on the Ultra LLAMA Challenge, click <a href='http://www.shenfll.com/challenge.html' target='_blank'>here.</a> Click the X on the top right of this to learn more about the location you're at!</p><input type='email' id='subinput' size='40' placeholder='provide your email here'><input type='email' id='subinput2' size='20' placeholder='and your initials here'><button id='sub'>Submit</button>";
-  modal3.style.display = "block";
-  var sub = document.getElementById("sub");
-  var subinput = document.getElementById("subinput");
-  var subinput2 = document.getElementById("subinput2");
-  sub.onclick = function () {
-    if (subinput.value && subinput2.value) {
-      sendit2(subinput2.value.toUpperCase(), subinput.value.toLowerCase(), place);
-      modal3.style.display = "none";
-    } else {
-      alert("please fill in both form fields before submitting");
-    }
-  }
+  checkinForm("ultra", place);
 }
 
 plot();

@@ -1,0 +1,6 @@
+# Only submit.php and the generated leaderboard.json are public here.
+Options -Indexes
+
+<Files "lib.php">
+    Require all denied
+</Files>

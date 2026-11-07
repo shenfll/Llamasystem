@@ -28,3 +28,6 @@ node_modules/
 .replit
 replit.nix
 .DS_Store
+
+# Generated on the server by tools/build_leaderboard.php
+site/checkin/leaderboard.json

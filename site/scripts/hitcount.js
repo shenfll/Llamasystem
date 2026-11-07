@@ -1,12 +1,2 @@
-(function () {
-  var url = "https://llamasystem.org:2020";
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", url);
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      console.log(xhr.status);
-      console.log(xhr.responseText);
-    }
-  };
-  xhr.send();
-}());
+// The visit counter (a Node server on port 2020) has been retired.
+// This file is kept so pages that still include it don't get a 404.

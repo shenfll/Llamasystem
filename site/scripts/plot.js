@@ -146,7 +146,7 @@ function plot(){
         modaltitle.innerHTML = comli.popup.title;
         modaltext.innerHTML = comli.popup.text;
         modalimg.src = comli.popup.image;
-        modaldir.href = "https://directions-api.jonahmorgan1.repl.co/?place=" + comli.coords + "";
+        modaldir.href = directionsUrl(comli.coords);
         modal.style.display = "block";
         this._input.value = "";
       }
@@ -416,7 +416,7 @@ function plot(){
           modaltitle.innerHTML = comli.popup.title;
           modaltext.innerHTML = comli.popup.text;
           modalimg.src = comli.popup.image;
-          modaldir.href = "https://directions-api.jonahmorgan1.repl.co/?place=" + comli.coords + "";
+          modaldir.href = directionsUrl(comli.coords);
           modal.style.display = "block";
         } catch{
           if(comli.intersection == false){
@@ -434,7 +434,7 @@ function plot(){
           modaltitle.innerHTML = comli.popup.title;
           modaltext.innerHTML = comli.popup.text;
           modalimg.src = comli.popup.image;
-          modaldir.href = "https://directions-api.jonahmorgan1.repl.co/?place=" + comli.coords + "";
+          modaldir.href = directionsUrl(comli.coords);
           modal.style.display = "block";
         } catch{
           if(comli.intersection == false){

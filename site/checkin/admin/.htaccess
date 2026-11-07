@@ -1,0 +1,9 @@
+# Password protection for the private check-in report.
+# The password file lives outside the website and is never committed.
+# Create it on the server with:  htpasswd -c ~/.htpasswd-llama <username>
+AuthType Basic
+AuthName "LLAMA check-in report"
+AuthUserFile /home/dh_6n4gzz/.htpasswd-llama
+Require valid-user
+
+Options -Indexes
