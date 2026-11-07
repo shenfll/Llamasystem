@@ -141,6 +141,30 @@ function llama_append(array $record): void
     @chmod(llama_checkins_file(), 0600);
 }
 
+// Turn a park as written in old data into its key. The old report page let
+// people type parks by hand, so the old data has entries like "Abele",
+// "Garnsey" or "Halfmoon Town Park" instead of "abele", "garnsey",
+// "halfmoon_town". Matches keys and park names, ignoring capitalization.
+// Unknown values are returned unchanged.
+function llama_normalize_park(string $park): string
+{
+    static $lookup = null;
+    if ($lookup === null) {
+        $lookup = [];
+        foreach (LLAMA_PARKS as $key => $name) {
+            $lookup[strtolower($name)] = $key;
+        }
+        foreach (array_keys(LLAMA_PARKS) as $key) {
+            $lookup[strtolower($key)] = $key;
+        }
+    }
+    if (array_key_exists($park, LLAMA_PARKS)) {
+        return $park;
+    }
+    $k = strtolower(trim($park));
+    return $lookup[$k] ?? $park;
+}
+
 // Read every record. Skips blank or damaged lines rather than failing.
 function llama_read_all(): array
 {
@@ -161,6 +185,7 @@ function llama_read_all(): array
         }
         $rec = json_decode($line, true);
         if (is_array($rec) && isset($rec['email'], $rec['park'], $rec['mode'])) {
+            $rec['park'] = llama_normalize_park((string)$rec['park']);
             $records[] = $rec;
         }
     }
