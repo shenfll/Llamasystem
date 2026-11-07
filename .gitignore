@@ -1,0 +1,30 @@
+# Private data: never commit. Check-ins contain participants' emails.
+database.json
+*.db
+*.sqlite
+data/
+checkin-data/
+hits.txt
+
+# Secrets and certificates
+*.pem
+*.key
+.htpasswd
+.env
+.env.*
+logins-*.txt
+
+# Office documents and spreadsheets (letters, leaderboards with emails)
+*.docx
+*.doc
+*.xlsx
+*.xls
+*.csv
+*.pdf
+
+# Tooling
+node_modules/
+.config/
+.replit
+replit.nix
+.DS_Store
