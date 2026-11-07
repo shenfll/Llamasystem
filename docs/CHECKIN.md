@@ -1,13 +1,12 @@
 # QR check-in (PHP)
 
-Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs continuously, and nothing has to be done by hand after a one-time setup.
+Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs continuously. After a one-time setup, check-ins, the leaderboard and finishers take care of themselves. Publishing code changes is a deliberate manual step (`tools/deploy.sh`).
 
 ## What happens automatically
 
 | When | What happens |
 |---|---|
 | A visitor scans a park's QR code and submits the form | `site/checkin/submit.php` saves the check-in to `~/llama-data/checkins.jsonl` (private, outside the website) and tells the visitor it worked |
-| Every 10 minutes (`tools/cron.sh`) | New commits on GitHub `main` are pulled and published to the website |
 | Every 10 minutes (`tools/cron.sh`) | The leaderboard is rebuilt (`tools/build_leaderboard.php` writes `checkin/leaderboard.json`) |
 | Someone reaches 20 of the 24 challenge parks through check-ins | They appear on the Finishers list on `challenge.html`, and an email notice with their contact address goes to llamasystem@gmail.com so their patch can be sent |
 | Someone visits 20 challenge parks in one day (Ultra check-ins) | Same, as an Ultra LLAMA Challenge finisher |
@@ -29,7 +28,8 @@ Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs c
 | `site/checkin/admin/report.php` | Private report (password protected by `admin/.htaccess`) |
 | `site/scripts/leaderboard.js` | Shows the leaderboard and new finishers on `challenge.html` |
 | `tools/setup.sh` | One-time server setup |
-| `tools/cron.sh` | The 10-minute job |
+| `tools/cron.sh` | The 10-minute job (leaderboard and finisher notices only) |
+| `tools/deploy.sh` | Publishes the latest code from GitHub, run by hand |
 | `tools/build_leaderboard.php` | Builds `leaderboard.json` and sends finisher notices |
 | `tools/import_legacy.php` | Imports the old Node servers' check-ins (run by `setup.sh`) |
 
@@ -86,7 +86,14 @@ Open the report in a browser, log in, and check that the TEST entry is there. Th
 
 ## Changing the site
 
-Commit and push to `main` on GitHub. The server publishes the change within 10 minutes. The log is in `~/llama-data/cron.log`.
+1. Commit and push the change to `main` on GitHub.
+2. When you want it live, run this on the server:
+
+```sh
+sh ~/llamasystem-repo/tools/deploy.sh
+```
+
+The script pulls from GitHub, lists the commits being published, checks the PHP files, and copies `site/` into the web root. Nothing is published until you run it.
 
 **Two cautions:**
 - **Publishing only adds and replaces files; it never deletes.** If you remove a file from `site/`, delete it on the server too.
@@ -99,5 +106,5 @@ Commit and push to `main` on GitHub. The server publishes the change within 10 m
 | The report says "Password protection is not active" | Check that `~/.htpasswd-llama` exists and matches the path in `site/checkin/admin/.htaccess` |
 | A check-in says it could not be saved | PHP can't write to `~/llama-data`; check `ls -ld ~/llama-data` |
 | The leaderboard says "not available" | Look in `~/llama-data/cron.log`, and run `sh ~/llamasystem-repo/tools/cron.sh` by hand to see errors |
-| GitHub changes aren't showing up | Look in `~/llama-data/cron.log` for "git fetch failed" (deploy key) or "could not update" (local changes on the server; don't edit files in `~/llamasystem-repo` directly) |
+| `deploy.sh` stops at `git pull` | Check the deploy key (step 1). If it says local changes would be overwritten, someone edited files in `~/llamasystem-repo` directly; make edits on GitHub instead |
 | No finisher emails arrive | Check the llamasystem@gmail.com spam folder. Errors are logged in `~/llama-data/cron.log`, and failed notices are retried every 10 minutes |
