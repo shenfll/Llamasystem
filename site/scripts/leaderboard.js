@@ -61,8 +61,9 @@
         status.textContent = "No check-ins yet. Scan a QR code at any park to get on the board!";
         return;
       }
-      rows.forEach(function (r) {
+      rows.forEach(function (r, i) {
         var tr = document.createElement("tr");
+        cell(tr, String(i + 1));
         cell(tr, String(r.rank));
         cell(tr, r.initials);
         cell(tr, r.count + " - " + r.parks.join(", "));
@@ -70,8 +71,9 @@
         table.appendChild(tr);
       });
       table.hidden = false;
-      status.textContent = "Leaderboard last updated " + new Date(data.updated).toLocaleDateString() +
-        ". Participants are ranked by the number of challenge locations visited.";
+      status.textContent = rows.length + " participants. Leaderboard last updated " +
+        new Date(data.updated).toLocaleDateString() +
+        ". Participants are ranked by the number of challenge locations visited; people with the same number share a rank.";
     })
     .catch(function () {
       status.textContent = "The leaderboard is not available right now.";
