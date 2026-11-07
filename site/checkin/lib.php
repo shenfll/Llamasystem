@@ -293,6 +293,73 @@ function llama_ultra_people(array $records): array
     return $people;
 }
 
+// Local (America/New_York) date for an ISO timestamp, as YYYY-MM-DD.
+function llama_local_date(?string $t): ?string
+{
+    if (!$t) {
+        return null;
+    }
+    try {
+        return (new DateTime($t))->setTimezone(new DateTimeZone('America/New_York'))->format('Y-m-d');
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+// People who completed a challenge through the website check-in.
+// Regular challenge: the check-in that brought them to 20 distinct challenge
+// parks. Ultra: 20 distinct challenge parks on one day.
+// Only completions made with the new check-in (src "web") count here; earlier
+// finishers were verified by hand and are listed in challenge.html already.
+// Returns a list of ['key', 'mode', 'email', 'initials', 'date', 'parks'],
+// oldest first. 'key' is stable, for remembering who was already announced.
+function llama_finishers(array $records): array
+{
+    $finishers = [];
+    $seen = [];      // email => [park => true], regular challenge
+    $done = [];      // email => true once finished, regular challenge
+    $ultraDay = [];  // email => day => [park => true], web check-ins only
+    $ultraDone = [];
+    foreach ($records as $r) {
+        if (!in_array($r['park'], LLAMA_CHALLENGE_PARKS, true)) {
+            continue;
+        }
+        $email = $r['email'];
+        $isWeb = ($r['src'] ?? '') === 'web' && !empty($r['t']);
+        if ($r['mode'] === 'challenge') {
+            $seen[$email][$r['park']] = true;
+            if (!isset($done[$email]) && count($seen[$email]) >= LLAMA_FINISH_COUNT) {
+                $done[$email] = true;
+                if ($isWeb) {
+                    $finishers[] = [
+                        'key' => 'challenge:' . $email,
+                        'mode' => 'challenge',
+                        'email' => $email,
+                        'initials' => $r['initials'] ?? '',
+                        'date' => llama_local_date($r['t']),
+                        'parks' => count($seen[$email]),
+                    ];
+                }
+            }
+        } elseif ($r['mode'] === 'ultra' && $isWeb) {
+            $day = llama_local_date($r['t']);
+            $ultraDay[$email][$day][$r['park']] = true;
+            if (!isset($ultraDone[$email]) && count($ultraDay[$email][$day]) >= LLAMA_FINISH_COUNT) {
+                $ultraDone[$email] = true;
+                $finishers[] = [
+                    'key' => 'ultra:' . $email,
+                    'mode' => 'ultra',
+                    'email' => $email,
+                    'initials' => $r['initials'] ?? '',
+                    'date' => $day,
+                    'parks' => count($ultraDay[$email][$day]),
+                ];
+            }
+        }
+    }
+    return $finishers;
+}
+
 function llama_h(?string $s): string
 {
     return htmlspecialchars((string)$s, ENT_QUOTES | ENT_HTML5, 'UTF-8');

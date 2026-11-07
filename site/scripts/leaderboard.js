@@ -22,6 +22,31 @@
     return Number(parts[1]) + "/" + Number(parts[2]) + "/" + parts[0];
   }
 
+  // Website finishers go at the top of the Finishers table (newest first),
+  // above the earlier finishers already written in challenge.html.
+  function addFinishers(finishers) {
+    var finTable = document.getElementById("finishers-table");
+    if (!finTable || finishers.length === 0) {
+      return;
+    }
+    var header = finTable.rows[0];
+    var insertAfter = header;
+    finishers.forEach(function (f) {
+      var name = f.mode === "ultra" ? "Ultra LLAMA Challenge" : "LLAMA Challenge";
+      var tr = document.createElement("tr");
+      [f.initials, formatDate(f.date),
+        "As of " + formatDate(f.date) + " " + f.initials + " completed the " + name +
+        " by checking in at 20 locations. Congratulations, and thank you for exploring our local treasures!"
+      ].forEach(function (text) {
+        var th = document.createElement("th");
+        th.textContent = text;
+        tr.appendChild(th);
+      });
+      insertAfter.parentNode.insertBefore(tr, insertAfter.nextSibling);
+      insertAfter = tr;
+    });
+  }
+
   fetch("/checkin/leaderboard.json", { cache: "no-cache" })
     .then(function (response) {
       if (!response.ok) {
@@ -30,6 +55,7 @@
       return response.json();
     })
     .then(function (data) {
+      addFinishers(data.finishers || []);
       var rows = data.rows || [];
       if (rows.length === 0) {
         status.textContent = "No check-ins yet. Scan a QR code at any park to get on the board!";

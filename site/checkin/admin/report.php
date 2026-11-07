@@ -92,7 +92,7 @@ function show_time(?string $t): string
 </div>
 
 <h2>LLAMA Challenge</h2>
-<p class="muted">Highlighted rows have reached <?= LLAMA_FINISH_COUNT ?> parks. Check their photos or check-ins, then add them to the Finishers table on challenge.html.</p>
+<p class="muted">Highlighted rows have reached <?= LLAMA_FINISH_COUNT ?> parks. People who reach <?= LLAMA_FINISH_COUNT ?> through website check-ins are added to the Finishers list on challenge.html automatically, and an email notice is sent so their patch can be mailed.</p>
 <div class="wrap"><table>
   <tr><th>Initials</th><th>Email</th><th class="num">Parks</th><th>Challenge parks visited</th><th>Other locations</th><th>Last check-in</th></tr>
   <?php foreach ($people as $email => $p): ?>

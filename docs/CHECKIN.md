@@ -1,126 +1,103 @@
 # QR check-in (PHP)
 
-Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs continuously. DreamHost's web server runs a PHP script only when someone submits a check-in, and cron rebuilds the public leaderboard on a schedule.
+Replaces the five retired Node servers in `legacy/node-servers/`. Nothing runs continuously, and nothing has to be done by hand after a one-time setup.
 
-## How it works
+## What happens automatically
 
-| Piece | Where | What it does |
-|---|---|---|
-| `site/checkin/submit.php` | `https://www.llamasystem.org/checkin/submit.php` | Receives a check-in from the park popup and appends it to the private data file |
-| `site/checkin/lib.php` | (not web-accessible) | Park list, data location, reading and writing check-ins, leaderboard logic |
-| `site/checkin/admin/report.php` | `https://www.llamasystem.org/checkin/admin/report.php` | Password-protected report of every participant, with a CSV download |
-| `tools/build_leaderboard.php` | run by cron | Writes `checkin/leaderboard.json` (initials and park names only) |
-| `site/scripts/leaderboard.js` | on `challenge.html` | Shows the leaderboard from `leaderboard.json` |
-| `tools/import_legacy.php` | run once | Copies the old Node servers' `database.json` check-ins into the new data file |
+| When | What happens |
+|---|---|
+| A visitor scans a park's QR code and submits the form | `site/checkin/submit.php` saves the check-in to `~/llama-data/checkins.jsonl` (private, outside the website) and tells the visitor it worked |
+| Every 10 minutes (`tools/cron.sh`) | New commits on GitHub `main` are pulled and published to the website |
+| Every 10 minutes (`tools/cron.sh`) | The leaderboard is rebuilt (`tools/build_leaderboard.php` writes `checkin/leaderboard.json`) |
+| Someone reaches 20 of the 24 challenge parks through check-ins | They appear on the Finishers list on `challenge.html`, and an email notice with their contact address goes to llamasystem@gmail.com so their patch can be sent |
+| Someone visits 20 challenge parks in one day (Ultra check-ins) | Same, as an Ultra LLAMA Challenge finisher |
 
-**Flow:**
-1. A visitor scans a QR code, which opens `llamasystem.org/?place=<park>`. Scanning a code for the Ultra challenge opens `llamasystem.org/?ultra=<park>`.
-2. The popup form posts to `/checkin/submit.php`.
-3. The script saves the check-in to `~/llama-data/checkins.jsonl`, one JSON record per line, and the visitor sees a confirmation.
+**What the public sees:**
+- The leaderboard and the Finishers list show initials, park names and dates only.
+- Emails appear only on the password-protected report at `/checkin/admin/report.php`, which also offers a CSV download.
 
-**Where the data lives:** check-ins go in `~/llama-data/`, outside the public website, so participants' emails are never web-accessible. To use another folder, set the `LLAMA_DATA_DIR` environment variable.
+**What stays manual:**
+- Mailing the patch itself, and collecting the $5.
+- Earlier finishers (2021–2025) were verified by hand and are written directly in `challenge.html`.
 
-**Public leaderboard:** it lists initials, how many of the 24 challenge parks each person has visited, which parks, and their last check-in date. Emails appear only on the password-protected report.
+## Files
 
-**Finishers:** these are still confirmed by a person. The report highlights anyone with 20 or more parks, and then someone adds them to the Finishers table on `challenge.html`.
+| File | Purpose |
+|---|---|
+| `site/checkin/submit.php` | Receives check-ins |
+| `site/checkin/lib.php` | Park list, storage, leaderboard and finisher logic (blocked from the web) |
+| `site/checkin/admin/report.php` | Private report (password protected by `admin/.htaccess`) |
+| `site/scripts/leaderboard.js` | Shows the leaderboard and new finishers on `challenge.html` |
+| `tools/setup.sh` | One-time server setup |
+| `tools/cron.sh` | The 10-minute job |
+| `tools/build_leaderboard.php` | Builds `leaderboard.json` and sends finisher notices |
+| `tools/import_legacy.php` | Imports the old Node servers' check-ins (run by `setup.sh`) |
 
-## One-time server setup
+## One-time setup on DreamHost
 
-Run these on DreamHost (`ssh into the DreamHost account (login in 1Password)`).
+Log in with `ssh into the DreamHost account (login in 1Password)`.
 
-### 1. Get the code
-
-The repository is private, so the server needs a read-only deploy key, the same way the MDR repositories work:
+### 1. Give the server read-only access to the repository
 
 ```sh
 ssh-keygen -t ed25519 -f ~/.ssh/llama_deploy -N "" -C "llamasystem deploy (DreamHost)"
 cat ~/.ssh/llama_deploy.pub
 ```
 
-Add that public key on GitHub: shenfll/Llamasystem → Settings → Deploy keys → Add deploy key. Leave "Allow write access" unchecked. Then:
+On GitHub, go to shenfll/Llamasystem → Settings → Deploy keys → Add deploy key. Paste the key and leave "Allow write access" **unchecked**.
+
+### 2. Clone and run the setup script
 
 ```sh
 GIT_SSH_COMMAND="ssh -i ~/.ssh/llama_deploy -o IdentitiesOnly=yes" \
   git clone git@github.com:shenfll/Llamasystem.git ~/llamasystem-repo
 cd ~/llamasystem-repo
 git config core.sshCommand "ssh -i ~/.ssh/llama_deploy -o IdentitiesOnly=yes"
+sh tools/setup.sh
 ```
 
-### 2. Check PHP
+**The setup script:**
+1. Checks PHP.
+2. Backs up and imports the old check-ins.
+3. Asks once for a report username and password. Save these in 1Password.
+4. Publishes the site.
+5. Builds the leaderboard.
+6. Adds the 10-minute cron job below the DreamHost block.
+
+It's safe to run again.
+
+**Options:**
+- To start the leaderboard fresh instead of importing old progress, run `LLAMA_SKIP_LEGACY=1 sh tools/setup.sh`.
+- To send finisher notices somewhere else, run `LLAMA_NOTIFY=someone@example.com sh tools/setup.sh`.
+
+### 3. Test
 
 ```sh
-php -v
-for f in site/checkin/*.php site/checkin/admin/*.php tools/*.php; do php -l "$f"; done
-```
-
-### 3. Back up and import the old check-ins
-
-```sh
-mkdir -p ~/llama-data && chmod 700 ~/llama-data
-mkdir -p ~/llama-data/legacy-backup
-cp -p ~/database-server/database.json ~/llama-data/legacy-backup/challenge-database.json
-cp -p ~/ultra-database-server/database.json ~/llama-data/legacy-backup/ultra-database.json
-php ~/llamasystem-repo/tools/import_legacy.php \
-  ~/llama-data/legacy-backup/challenge-database.json \
-  ~/llama-data/legacy-backup/ultra-database.json
-```
-
-### 4. Set the report password
-
-```sh
-htpasswd -c ~/.htpasswd-llama <username>      # prompts for a password; store it in 1Password
-chmod 644 ~/.htpasswd-llama
-```
-
-Add more people later with `htpasswd ~/.htpasswd-llama <name>`, without `-c`. `site/checkin/admin/.htaccess` expects this file at `/home/dh_6n4gzz/.htpasswd-llama`.
-
-### 5. Deploy the site files
-
-This copies the repository's `site/` folder into the web root. It adds and replaces files but **never deletes anything**, so `/mdr/` and other files on the server are untouched:
-
-```sh
-rsync -av ~/llamasystem-repo/site/ ~/llamasystem.org/
-```
-
-Never add `--delete` to that command.
-
-### 6. Build the leaderboard and schedule it
-
-```sh
-php ~/llamasystem-repo/tools/build_leaderboard.php ~/llamasystem.org/checkin/leaderboard.json
-```
-
-Add this line with `crontab -e`, **below** the `###--- END DREAMHOST BLOCK` line. It rebuilds the leaderboard every day at 3:15 am:
-
-```cron
-15 3 * * * /usr/bin/env php /home/dh_6n4gzz/llamasystem-repo/tools/build_leaderboard.php /home/dh_6n4gzz/llamasystem.org/checkin/leaderboard.json >> /home/dh_6n4gzz/llama-data/leaderboard.log 2>&1
-```
-
-If `php` isn't found under cron, replace `/usr/bin/env php` with the full path from `which php`.
-
-### 7. Test
-
-```sh
-# Should return {"ok":true,...}
+# Should print {"ok":true,...}
 curl -s -X POST https://www.llamasystem.org/checkin/submit.php \
   -d mode=challenge -d park=kinns -d email=test@example.com -d initials=TEST
-tail -1 ~/llama-data/checkins.jsonl
 
-# Should be refused (403) without the password
+# Both should print 403 (blocked without the password)
 curl -s -o /dev/null -w "%{http_code}\n" https://www.llamasystem.org/checkin/lib.php
 curl -s -o /dev/null -w "%{http_code}\n" https://www.llamasystem.org/checkin/admin/report.php
 ```
 
-Then open the report in a browser, log in, and check the test entry. Afterwards, delete the test line from `~/llama-data/checkins.jsonl` (for example with `nano`).
+Open the report in a browser, log in, and check that the TEST entry is there. Then remove the test line with `nano ~/llama-data/checkins.jsonl`.
 
-## Updating the site later
+## Changing the site
 
-```sh
-cd ~/llamasystem-repo && git pull && rsync -av site/ ~/llamasystem.org/
-```
+Commit and push to `main` on GitHub. The server publishes the change within 10 minutes. The log is in `~/llama-data/cron.log`.
+
+**Two cautions:**
+- **Publishing only adds and replaces files; it never deletes.** If you remove a file from `site/`, delete it on the server too.
+- **Never add `--delete` to the rsync commands.** The same web root hosts the Mountain Dog Running site under `/mdr/`.
 
 ## Troubleshooting
 
-- **The report says "Password protection is not active".** The web server didn't pass the logged-in user to PHP. Check that `~/.htpasswd-llama` exists and that the path in `site/checkin/admin/.htaccess` matches.
-- **A check-in says it could not be saved.** PHP couldn't write to `~/llama-data`. Check the folder's permissions (`ls -ld ~/llama-data`).
-- **The leaderboard says "not available".** `leaderboard.json` hasn't been built yet, or the cron job is failing. Look in `~/llama-data/leaderboard.log`.
+| Symptom | Fix |
+|---|---|
+| The report says "Password protection is not active" | Check that `~/.htpasswd-llama` exists and matches the path in `site/checkin/admin/.htaccess` |
+| A check-in says it could not be saved | PHP can't write to `~/llama-data`; check `ls -ld ~/llama-data` |
+| The leaderboard says "not available" | Look in `~/llama-data/cron.log`, and run `sh ~/llamasystem-repo/tools/cron.sh` by hand to see errors |
+| GitHub changes aren't showing up | Look in `~/llama-data/cron.log` for "git fetch failed" (deploy key) or "could not update" (local changes on the server; don't edit files in `~/llamasystem-repo` directly) |
+| No finisher emails arrive | Check the llamasystem@gmail.com spam folder. Errors are logged in `~/llama-data/cron.log`, and failed notices are retried every 10 minutes |
