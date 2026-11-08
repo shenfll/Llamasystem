@@ -528,14 +528,21 @@ function checkinForm(mode, place) {
   var goal = mode === "ultra"
     ? "visit at least 20 of the 24 locations listed on the challenge page in a single day"
     : "visit at least 20 of the 24 locations listed on the challenge page";
-  modaltitle3.innerHTML = "Would you like today's visit to count towards the " + name + "? If so, enter your email address and initials below.";
-  modaltext3.innerHTML = "<p>The " + name + " is a fun way to explore our parks: " + goal + " and earn a llama patch designed by our students! " +
+  // Name the park, so visitors know which location they are logging.
+  var point = mydata.points[place];
+  var parkName = point ? ((point.popup && point.popup.title) || point.name) : "";
+  var heading = document.createElement("span");
+  heading.textContent = parkName ? "You're at " + parkName + "!" : "Welcome to the " + name + "!";
+  modaltitle3.innerHTML = "";
+  modaltitle3.appendChild(heading);
+  modaltext3.innerHTML = "<p><strong>Would you like today's visit to count towards the " + name + "? Enter your email address and initials below.</strong></p>" +
+    "<p>The " + name + " is a fun way to explore our parks: " + goal + " and earn a llama patch designed by our students! " +
     "Your email address is only used to keep track of your visits and is never shown on the website; the leaderboard shows initials only. " +
     "For more information, see the <a href='/challenge.html' target='_blank'>challenge page</a>. " +
     "Click the X at the top right to learn more about the location you're at.</p>" +
     "<input type='email' id='subinput' size='40' placeholder='your email address' autocomplete='email'>" +
     "<input type='text' id='subinput2' size='20' placeholder='your initials' maxlength='10' autocomplete='off'>" +
-    "<button id='sub'>Submit</button>";
+    "<button id='sub'>Log my visit</button>";
   modal3.style.display = "block";
   var sub = document.getElementById("sub");
   var subinput = document.getElementById("subinput");
