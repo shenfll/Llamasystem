@@ -12,6 +12,7 @@ The Shenendehowa Robotic Renovators, a FIRST Lego League team, built this site i
 | `site/scripts/data.js` | Park locations, trails and popup text |
 | `site/scripts/script.js` | Map logic, TEA LLAMA connections, QR check-in popup |
 | `site/scripts/plot.js` | Mapbox map setup |
+| `site/invasives/` | Prototype invasive plant tracker, published at `/invasives/` but not linked from the site. Reports are saved only in the visitor's browser |
 | `legacy/node-servers/` | The original Node.js check-in, report and hit-counter servers (retired, kept for reference) |
 
 The first commit is the February 2025 version of the site, taken from the Replit export `ShenFLL (66).zip` (March 2025). That version was uploaded to `/ShenFLL/` on the server but never reached the root of the live site.
