@@ -21,6 +21,9 @@ logins-*.txt
 *.xls
 *.csv
 *.pdf
+# ...except the printable flyers and the website's checklist
+!flyers/*.pdf
+!site/images/llama-checklist.pdf
 
 # Tooling
 node_modules/
@@ -31,3 +34,5 @@ replit.nix
 
 # Generated on the server by tools/build_leaderboard.php
 site/checkin/leaderboard.json
+__pycache__/
+*.pyc
