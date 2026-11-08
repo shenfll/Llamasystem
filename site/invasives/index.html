@@ -318,9 +318,15 @@
   // ---- Map ----------------------------------------------------------------
   var map = L.map("map", { zoomControl: true }).setView([42.861, -73.81], 11);
   if (parks.length) { map.fitBounds(parks.map(function (p) { return [p.lat, p.lng]; }), { padding: [20, 20] }); }
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  // Same Mapbox account and "outdoors" style as the main LLAMA map (public browser key from scripts/plot.js).
+  var MAPBOX_TOKEN = "pk.eyJ1Ijoid2NmdGVhIiwiYSI6ImNrbWlicXUzYzBmcGUyb3M3NGJiemk2Y3YifQ.bEZHzGCOSoCanXcE-Kvy4w";
+  L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/512/{z}/{x}/{y}@2x?access_token=" + MAPBOX_TOKEN, {
+    tileSize: 512,
+    zoomOffset: -1,
     maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    attribution: '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noreferrer">Mapbox</a> ' +
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> ' +
+      '<a href="https://www.mapbox.com/map-feedback/" target="_blank" rel="noreferrer">Improve this map</a>'
   }).addTo(map);
 
   var parkLayer = L.layerGroup().addTo(map);
