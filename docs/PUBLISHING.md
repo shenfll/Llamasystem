@@ -7,15 +7,13 @@ This guide is written for Naomi. An agent helping her can walk through it step b
 ## What you need
 
 - **1Password.** The DreamHost login entry has three things you'll use: the **server name**, the **username** and the **password**. (Ask Bill if you can't find the entry.)
-- **A terminal program**:
-  - **Windows:** open the Start menu, type **PowerShell**, and open **Windows PowerShell**.
-  - **Mac:** open **Terminal** (in Applications → Utilities, or search for it with Spotlight).
+- **Terminal**, the Mac's command window: press **Cmd-Space**, type **Terminal**, and press Enter. (It's also in Applications → Utilities.)
 
 ## Steps
 
 ### 1. Log in to the server
 
-In PowerShell or Terminal, type `ssh`, a space, then the username, an `@` sign, and the server name, all from 1Password. It looks like this, with your real values in place of the words in angle brackets:
+In Terminal, type `ssh`, a space, then the username, an `@` sign, and the server name, all from 1Password. It looks like this, with your real values in place of the words in angle brackets:
 
 ```
 ssh <username>@<server name>
@@ -24,13 +22,13 @@ ssh <username>@<server name>
 Press Enter.
 
 - **First time only:** you may see "Are you sure you want to continue connecting?". Type `yes` and press Enter.
-- When asked for the **password**, copy it from 1Password and paste it: **right-click** in PowerShell, or **Cmd-V** in Terminal. **Nothing appears while you paste or type the password.** That's normal. Press Enter.
+- When asked for the **password**, copy it from 1Password and paste it with **Cmd-V**. **Nothing appears while you paste or type the password,** not even dots. That's normal. Press Enter.
 
 You're logged in when you see a prompt ending in `$`, like `[pdx1-...]$`.
 
 ### 2. Publish
 
-Copy this line, paste it, and press Enter:
+Copy this line, paste it with Cmd-V, and press Enter:
 
 ```sh
 sh ~/llamasystem-repo/tools/deploy.sh
@@ -49,7 +47,9 @@ If it says **"Already up to date"**, there was nothing new to publish. That's fi
 
 ### 3. Log out
 
-Type `exit` and press Enter. Close the window.
+Type `exit` and press Enter. You can close the Terminal window.
+
+**Next time:** Terminal remembers commands. After opening it, press the **up arrow** to bring back the `ssh` line instead of typing it again.
 
 ### 4. Check the website
 
@@ -59,7 +59,6 @@ Open [llamasystem.org](https://www.llamasystem.org/) and look at what changed. P
 
 | What you see | What to do |
 |---|---|
-| `ssh` is not recognized (Windows) | Open **Settings → Apps → Optional features**, choose **Add a feature**, and install **OpenSSH Client**. Then open a new PowerShell window. |
 | "Permission denied" after the password | The password didn't paste correctly. Try again and make sure you copied the whole password from 1Password. After several failures, wait a few minutes. |
 | "Connection timed out" | Check your internet connection, and that the server name matches 1Password exactly. |
 | The deploy stops with an error, or mentions "git pull" or "local changes" | Don't try to fix it on the server. Copy everything shown in the window and send it to Bill. |
