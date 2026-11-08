@@ -283,8 +283,8 @@ var mydata = {
       intersection: false,
       popup: {
         title: "Towpath Lock 7 & Dam Overlook",
-        text: "This is a great place to see Lock 7 and the dam. A walking, running, and biking trail starts at the parking area and heads east along the Mohawk River and eventually joins the Vischer Ferry Nature Preserve.<ul><li>LLAMA Challenge:</li><li>Letterboxes</li><li>Storyboards</li><li>Pet Friendly - Dogs must be on leash<li>Hours: 5:00AM to 10:00PM</li><li>Parking: 🚙</li></ul>",
-        image: "https://lh5.googleusercontent.com/p/AF1QipP0s9cHzwQPuFauEGp2O2qQeQNl8LJ9MOI9edOb=w408-h306-k-no",
+        text: "This is a great place to see Lock 7 and the dam. A walking, running, and biking trail starts at the parking area and heads east along the Mohawk River and eventually joins the Vischer Ferry Nature Preserve.<ul><li>LLAMA Challenge:</li><li>Letterboxes</li><li>Storyboards</li><li>Pet Friendly - Dogs must be on leash<li>Hours: 5:00AM to 10:00PM</li><li>Parking: 🚙</li></ul> <br><small>Photo: <a href='https://commons.wikimedia.org/wiki/File:Erie_Canal_-_Lock_7_-_Niskayuna,_New_York.jpg' target='_blank' rel='noreferrer'>Dougtone</a>, <a href='https://creativecommons.org/licenses/by-sa/2.0/' target='_blank' rel='noreferrer'>CC BY-SA 2.0</a>, via Wikimedia Commons</small>",
+        image: "pics/lock7-dougtone.jpg",
       },
     },
     riverview: {
