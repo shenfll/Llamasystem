@@ -462,7 +462,7 @@ if (window.location.search.indexOf("place") > -1) {
   modalimg.src = comli.popup.image;
   modaldir.href = directionsUrl(comli.coords);
   modal.style.display = "block";
-  markitdownform(window.location.search.replace("?place=", ""));
+  addCheckinButton("challenge", window.location.search.replace("?place=", ""));
 }
 if (window.location.search.indexOf("point") > -1) {
   comli = mydata.points[window.location.search.replace("?point=", "")];
@@ -479,7 +479,7 @@ if (window.location.search.indexOf("ultra") > -1) {
   modalimg.src = comli.popup.image;
   modaldir.href = directionsUrl(comli.coords);
   modal.style.display = "block";
-  markitdownform2(window.location.search.replace("?ultra=", ""));
+  addCheckinButton("ultra", window.location.search.replace("?ultra=", ""));
 }
 // Directions open in Google Maps. (The old Replit directions service no longer exists.)
 function directionsUrl(coords) {
@@ -539,7 +539,7 @@ function checkinForm(mode, place) {
     "<p>The " + name + " is a fun way to explore our parks: " + goal + " and earn a llama patch designed by our students! " +
     "Your email address is only used to keep track of your visits and is never shown on the website; the leaderboard shows initials only. " +
     "For more information, see the <a href='/challenge.html' target='_blank'>challenge page</a>. " +
-    "Click the X at the top right to learn more about the location you're at.</p>" +
+    "Click the X at the top right to go back to the park information.</p>" +
     "<input type='email' id='subinput' size='40' placeholder='your email address' autocomplete='email'>" +
     "<input type='text' id='subinput2' size='20' placeholder='your initials' maxlength='10' autocomplete='off'>" +
     "<button id='sub'>Log my visit</button>";
@@ -555,6 +555,26 @@ function checkinForm(mode, place) {
     } else {
       showMessage("Please fill in both your email address and your initials.");
     }
+  };
+}
+// Visitors who scan a park's QR flyer see the park's info first, with a
+// button to log the visit. People who only want park info can ignore it.
+// The button is part of the description text, so opening another park on
+// the map (which replaces the text) removes it.
+function addCheckinButton(mode, place) {
+  if (!mydata.points[place]) {
+    return;
+  }
+  var label = mode === "ultra" ? "Log my visit for the Ultra LLAMA Challenge" : "Log my visit for the LLAMA Challenge";
+  var note = mode === "ultra"
+    ? "Visit 20 of the 24 challenge parks in one day to earn a patch."
+    : "Visit 20 of the 24 challenge parks to earn a patch.";
+  modaltext.innerHTML += "<span id='checkin-offer' style='display:block;margin-top:1em;text-align:center'>" +
+    "<button type='button' id='checkin-start' style='font-size:1.1em;font-weight:bold;padding:0.6em 1.2em;" +
+    "border:0;border-radius:8px;background:#2c7a4b;color:#fff;cursor:pointer'>" + label + "</button>" +
+    "<span style='display:block;margin-top:0.4em;font-size:0.9em'>" + note + "</span></span>";
+  document.getElementById("checkin-start").onclick = function () {
+    checkinForm(mode, place);
   };
 }
 function markitdownform(place) {
