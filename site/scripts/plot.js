@@ -411,37 +411,13 @@ function plot(){
     map.on('click', id, function (e) {
       if(isclicked == false){
         isclicked = true;
-        try {
-          comli = mydata.points[findit(name)];
-          modaltitle.innerHTML = comli.popup.title;
-          modaltext.innerHTML = comli.popup.text;
-          modalimg.src = comli.popup.image;
-          modaldir.href = directionsUrl(comli.coords);
-          modal.style.display = "block";
-        } catch{
-          if(comli.intersection == false){
-            alerttext.innerHTML = "Sorry, but we are still working on providing info for this location.";
-            alertel.style.display = "block";
-          }
-        }
+        showPlace(findit(name), name, waypoint);
       }
     });
     map.on('click', id+"text", function (e) {
       if(isclicked == false){
         isclicked = true;
-        try {
-          comli = mydata.points[findit(name)];
-          modaltitle.innerHTML = comli.popup.title;
-          modaltext.innerHTML = comli.popup.text;
-          modalimg.src = comli.popup.image;
-          modaldir.href = directionsUrl(comli.coords);
-          modal.style.display = "block";
-        } catch{
-          if(comli.intersection == false){
-            alerttext.innerHTML = "Sorry, but we are still working on providing info for this location.";
-            alertel.style.display = "block";
-          }
-        }
+        showPlace(findit(name), name, waypoint);
       }
     });
   }

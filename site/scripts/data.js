@@ -114,7 +114,7 @@ var mydata = {
       popup: {
         title: "George T Smith Park",
         text: "This park offers plenty of shade to keep the playground equipment from getting too hot during the summer months. There is a good mix of new and classic equipment. There is also an area for small toddlers which is a huge perk. There are also tennis courts, basketball, and walking trails.<ul><li>LLAMA Challenge: flyer on tree between two park boards</li><li>Not pet friendly</li><li>Hours: 5:00AM to 10:00PM</li><li>Parking: 🚙🚙</li></ul>",
-        image: "pics/GeorgeTSmithparkdone.jpg",
+        image: "pics/GeorgeTSmithpark%20done.jpg",
       },
     },
     longkill: {
@@ -204,7 +204,7 @@ var mydata = {
       popup: {
         title: "Veterans Memorial Park",
         text: "This park can be found at Elks Trail and has softball fields and a pavilion. There are also beautiful wetlands and woodlands behind the ballfields. There are natural surface trails here where you can hike, walk, snowshoe, country ski, and just observe the wetlands. Trails are not groomed regularly and it is muddy due to the wetlands.<ul><li>LLAMA Challenge:</li><li>Pet friendly - Dogs must be on leash</li><li>Acreage: 141</li><li>Hours: 6:00am to 9:00pm</li><li>Parking: 🚙🚙🚙</li></ul>",   
-        image: "https://cdn-assets.alltrails.com/uploads/photo/image/27292310/extra_large_e3550951162c8b91228e3f6dd3b18dee.jpg",
+        image: "pics/veteransparkdone.jpg",
       },
     },
     woodcock: {

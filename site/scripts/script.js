@@ -481,6 +481,55 @@ if (window.location.search.indexOf("ultra") > -1) {
   modal.style.display = "block";
   addCheckinButton("ultra", window.location.search.replace("?ultra=", ""));
 }
+// Extra entrances and trail access points share their main park's info.
+var INFO_FROM = {
+  kinns_canterbury: "kinns",
+  dwaas_trail_end: "dwaas",
+  longkill_blue_spruce: "longkill",
+  longkill_water_tower: "longkill",
+  zim_english: "zim_coons",
+  zim_mill: "zim_coons",
+  zim_round_lake: "zim_coons",
+  zim_i87: "zim_coons"
+};
+var PLACEHOLDER_IMAGE = "/images/Untitled70.png";
+
+// If a park's photo can't be loaded (many were linked from other websites
+// that have since removed them), show the LLAMA logo instead of a broken image.
+modalimg.onerror = function () {
+  if (this.src.indexOf(PLACEHOLDER_IMAGE) === -1) {
+    this.src = PLACEHOLDER_IMAGE;
+  }
+};
+
+// Open the info popup for a map marker. Parks without a write-up still get
+// their name and directions. Junction markers (the other color) are points
+// where paths connect; they just show their name. If nothing can be shown,
+// the map stays clickable.
+function showPlace(key, label, isJunction) {
+  var point = mydata.points[key];
+  if (!point) {
+    isclicked = false;
+    return;
+  }
+  if (isJunction || point.intersection) {
+    alerttext.textContent = (label || point.name) + ": a point where paths and sidewalks connect.";
+    alertel.style.display = "block";
+    return;
+  }
+  var info = point.popup || (INFO_FROM[key] && mydata.points[INFO_FROM[key]].popup);
+  var title = point.popup ? point.popup.title : (label || point.name);
+  modaltitle.textContent = title;
+  if (info) {
+    modaltext.innerHTML = info.text;
+  } else {
+    modaltext.textContent = "We're still gathering information about this location. Tap Directions to find it.";
+  }
+  modalimg.src = (info && info.image) ? info.image : PLACEHOLDER_IMAGE;
+  modaldir.href = directionsUrl(point.coords);
+  modal.style.display = "block";
+}
+
 // Directions open in Google Maps. (The old Replit directions service no longer exists.)
 function directionsUrl(coords) {
   return "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(coords);
