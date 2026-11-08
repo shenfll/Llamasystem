@@ -61,7 +61,7 @@ So: **no Node/Python servers, no websockets, no listening on ports, no `screen` 
 2. Bill runs `sh ~/llamasystem-repo/tools/deploy.sh` on the server **on purpose** when he wants it live. Nothing publishes automatically. Do not add automatic pulling from GitHub.
 3. `deploy.sh` pulls `main`, shows the commits being published, lint-checks the PHP, copies `site/` into the web root with `rsync` (**never with `--delete`**), stamps `?v=<commit>` onto script and stylesheet links in top-level pages so phones fetch new files, and rebuilds the leaderboard.
 
-Agents cannot log in to the server. If something must be run there, write the exact commands for Bill and say what output to expect. Give commands that can be pasted in one go. If a command prompts for input, make it the last command.
+Naomi can also publish; `docs/PUBLISHING.md` is her step-by-step guide (walk her through it when she asks how to publish). Agents cannot log in to the server. If something must be run there, write the exact commands for Bill and say what output to expect. Give commands that can be pasted in one go. If a command prompts for input, make it the last command.
 
 Publishing only adds and replaces files. If you remove or rename a file under `site/`, tell Bill to delete the old copy on the server.
 
