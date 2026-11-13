@@ -1,0 +1,6 @@
+# Reuse the private LLAMA report credentials. The password file stays outside the web root.
+AuthType Basic
+AuthName "LLAMA invasive report review"
+AuthUserFile /home/dh_6n4gzz/.htpasswd-llama
+Require valid-user
+Options -Indexes

@@ -27,3 +27,9 @@ if [ -n "${LLAMA_NOTIFY:-}" ]; then
 else
     "$PHP" "$REPO/tools/build_leaderboard.php" "$WEB/checkin/leaderboard.json"
 fi
+
+if [ -f "$REPO/tools/build_invasives.php" ]; then
+    if ! "$PHP" "$REPO/tools/build_invasives.php" "$WEB"; then
+        echo "LLAMA invasive sightings update failed; see server error log."
+    fi
+fi

@@ -26,7 +26,7 @@ else
     git log --oneline "$BEFORE..$AFTER"
 fi
 
-for f in site/checkin/*.php site/checkin/admin/*.php tools/*.php; do
+for f in site/checkin/*.php site/checkin/admin/*.php site/invasives/api/*.php site/invasives/admin/*.php tools/*.php; do
     "$PHP" -l "$f" >/dev/null
 done
 

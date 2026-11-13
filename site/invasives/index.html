@@ -26,7 +26,8 @@
   html, body { height: 100%; margin: 0; }
   body { background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; display: flex; flex-direction: column; }
   header { background: var(--green); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  header img { width: 44px; height: 44px; border-radius: 50%; background: #fff; padding: 2px; }
+  .logo-window { width: 92px; height: 92px; overflow: hidden; border-radius: 14px; background: var(--green); flex: 0 0 auto; }
+  .logo-window img { display: block; width: 100%; height: 100%; object-fit: cover; max-width: none; border-radius: inherit; padding: 0; }
   header h1 { margin: 0; font-size: 20px; line-height: 1.2; }
   header p { margin: 0; font-size: 13px; opacity: .9; }
   .badge { background: #ffe9a8; color: #5a4300; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 99px; vertical-align: middle; margin-left: 6px; }
@@ -52,9 +53,10 @@
   .notice { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 9px 12px; font-size: 13.5px; margin-bottom: 12px; }
   .notice.ok { background: var(--green-soft); color: var(--green-dark); }
   label { display: block; font-weight: 600; font-size: 13.5px; margin: 12px 0 4px; }
-  select, input[type=text], input[type=date], textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--fg); }
+  select, input[type=text], input[type=date], input[type=url], textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--fg); }
   textarea { min-height: 80px; resize: vertical; }
   .where { background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 9px 12px; font-size: 13.5px; }
+  .honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
   .preview { margin-top: 8px; max-width: 100%; border-radius: 8px; display: block; }
   .list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
   .sighting { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; background: var(--card); text-align: left; font: inherit; color: inherit; width: 100%; }
@@ -68,6 +70,15 @@
   .plant.danger { border-color: var(--bad); background: var(--bad-soft); }
   .plant .sci { font-style: italic; color: var(--muted); font-size: 13px; }
   .plant p { font-size: 13.5px; margin: 6px 0 0; }
+  .removal-tips { margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: var(--green-soft); }
+  .removal-tips ul { margin: 6px 0; padding-left: 20px; }
+  .removal-tips li { margin-bottom: 6px; }
+  .removal-tips p { font-size: 12.5px; }
+  .community-tips { margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: #f0f4ed; }
+  .community-tips ul { margin: 6px 0; padding-left: 20px; }
+  .community-tips li { margin-bottom: 8px; }
+  .community-tips a { overflow-wrap: anywhere; }
+  #tip-form { margin: 12px 0 16px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
   .how ol, .how ul { padding-left: 20px; margin: 6px 0 12px; }
   .how li { margin-bottom: 6px; }
   .leaflet-popup-content { margin: 10px 12px; min-width: 200px; }
@@ -91,7 +102,7 @@
 </head>
 <body>
 <header>
-  <img src="../images/Untitled70.png" alt="">
+  <span class="logo-window"><img src="images/captibytes-team-logo.jpg?v=2" alt="Capti Bytes team logo"></span>
   <div>
     <h1>LLAMA Invasive Plant Tracker <span class="badge">Prototype</span></h1>
     <p>Spot invasive plants in our parks, trails and preserves, and put them on the map.</p>
@@ -113,7 +124,7 @@
     </div>
 
     <section class="panel" id="panel-sightings" role="tabpanel">
-      <div class="notice">This is a prototype. Reports you add are saved only on this device, so nobody else can see them. Sightings marked <b>Example</b> are made up to show the idea.</div>
+      <div class="notice" id="server-notice">Reports are saved privately on the LLAMA server. An adult reviews each report before it can appear on the public map. Sightings marked <b>Example</b> are made up to show the idea.</div>
       <div class="row">
         <button class="btn" id="start-report">+ Report a plant</button>
         <select id="filter" aria-label="Show species"></select>
@@ -137,21 +148,22 @@
         <p class="muted" style="margin-top:4px">Not sure? Check the Plant guide tab, or choose "Not sure".</p>
 
         <label for="photo">3. Photo</label>
-        <input type="file" id="photo" accept="image/*" capture="environment">
+        <input type="file" id="photo" accept="image/jpeg,image/png,image/webp" capture="environment" required>
+        <label class="honeypot" aria-hidden="true">Leave this blank<input type="text" id="website" tabindex="-1" autocomplete="off"></label>
         <img id="photo-preview" class="preview" alt="" hidden>
         <p class="muted" style="margin-top:4px">Get the leaves and flowers or berries in the picture. No people in photos, please.</p>
 
         <label for="notes">4. Description</label>
-        <textarea id="notes" placeholder="How big is the patch? Near a trail or water? Flowers or berries?"></textarea>
+        <textarea id="notes" maxlength="2000" placeholder="How big is the patch? Near a trail or water? Flowers or berries?"></textarea>
 
         <div class="row" style="align-items:flex-start">
           <div style="flex:1;min-width:120px">
             <label for="initials">Your initials</label>
-            <input type="text" id="initials" maxlength="10" autocomplete="off">
+            <input type="text" id="initials" maxlength="10" autocomplete="off" required>
           </div>
           <div style="flex:1;min-width:140px">
             <label for="date">Date seen</label>
-            <input type="date" id="date">
+            <input type="date" id="date" required>
           </div>
         </div>
         <div class="notice" id="form-msg" hidden style="margin-top:12px"></div>
@@ -165,7 +177,24 @@
     <section class="panel" id="panel-guide" role="tabpanel" hidden>
       <h2>Common invasive plants near us</h2>
       <p class="muted">These plants came from other parts of the world and crowd out native plants. They are common around Clifton Park, Halfmoon and along the Mohawk River.</p>
+      <div class="notice">Community tips are reviewed by an adult before they appear here. Don't recommend touching plants, using herbicides, or removing plants without land-manager permission. For giant hogweed, tell an adult and follow official guidance.</div>
       <div id="guide"></div>
+      <form id="tip-form" hidden novalidate>
+        <h3 id="tip-form-title">Share a mitigation tip</h3>
+        <p class="muted">Tips are sent privately for adult review. No name or email is requested.</p>
+        <label for="tip-species">Plant</label>
+        <select id="tip-species" required></select>
+        <label for="tip-text">Your tip</label>
+        <textarea id="tip-text" maxlength="800" required placeholder="Share a safe, practical way to help control this plant."></textarea>
+        <label for="tip-source">Source link (optional)</label>
+        <input type="url" id="tip-source" maxlength="500" placeholder="https://…">
+        <label class="honeypot" aria-hidden="true">Leave this blank<input type="text" id="tip-website" tabindex="-1" autocomplete="off"></label>
+        <div class="notice" id="tip-msg" hidden style="margin-top:12px"></div>
+        <div class="row" style="margin-top:12px">
+          <button type="submit" class="btn" id="tip-submit">Send tip for review</button>
+          <button type="button" class="btn secondary" id="tip-cancel">Cancel</button>
+        </div>
+      </form>
       <p class="muted">Learn more at <a href="https://www.nyimapinvasives.org/" target="_blank" rel="noreferrer">NY iMapInvasives</a>, New York State's official invasive species database, and from the <a href="https://www.capitalmohawkprism.org/" target="_blank" rel="noreferrer">Capital Mohawk PRISM</a>, our regional invasive species partnership.</p>
     </section>
 
@@ -174,9 +203,9 @@
       <p>This prototype shows the idea. Here is what a real version could do, and some questions for the team to think about.</p>
       <h3>In the real version</h3>
       <ol>
-        <li><b>Reports are saved on the LLAMA server</b>, the same way QR check-ins are, so everyone sees the same map.</li>
-        <li><b>A grown-up reviews each report</b> before it appears on the public map, to check the photo and plant name.</li>
-        <li><b>Photos are shrunk</b> before uploading so they load fast in the parks.</li>
+        <li><b>Reports are saved privately on the LLAMA server</b>, along with the resized photo.</li>
+        <li><b>A grown-up reviews every report</b>. Only approved reports and photos appear on the public map.</li>
+        <li><b>Photos are resized and stripped of location metadata</b> before they are saved.</li>
         <li><b>Good reports are shared with NY iMapInvasives</b>, so state scientists can use them too.</li>
         <li><b>Each park page could show its invasive plants</b>, linking this to the LLAMA map and challenge.</li>
       </ol>
@@ -195,7 +224,8 @@
         <li>What should happen after a plant is reported?</li>
       </ul>
       <p class="muted">Inspired by <a href="https://www.nyimapinvasives.org/" target="_blank" rel="noreferrer">NY iMapInvasives</a>. To report a real sighting to New York State, use iMapInvasives.</p>
-      <button class="btn danger" id="clear-mine" type="button">Delete my test reports</button>
+      <p class="muted">Reports made in the earlier browser-only version stay on that device; they are not uploaded automatically. Re-submit them if they should be reviewed.</p>
+      <button class="btn danger" id="clear-mine" type="button">Delete old reports from this device</button>
     </section>
   </aside>
 </div>
@@ -205,6 +235,11 @@
 <script>
 (function () {
   "use strict";
+
+  var serverNotice = document.getElementById("server-notice");
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    serverNotice.textContent = "Local preview: this server does not run PHP, so reports and tips cannot be saved here. After deployment, submissions go to a private LLAMA review queue. Sightings marked Example are made up.";
+  }
 
   // ---- Plants -------------------------------------------------------------
   var PLANTS = [
@@ -300,7 +335,17 @@
       notes: e.notes, initials: e.initials, date: e.date, photo: null, near: p.name });
   });
 
-  // ---- Storage (this browser only) ----------------------------------------
+  // Owner-added local sighting: the attached photos were identified as Oriental bittersweet.
+  var OWNER_ADDED = [
+    { id: "veterans-bittersweet", ownerAdded: true, featured: true,
+      lat: 42.902923, lng: -73.846200, species: "bittersweet", date: "", initials: "",
+      near: "Veterans Memorial Park",
+      notes: "Oriental bittersweet, a woody invasive vine. These photos show its leaves and orange-red berries at Veterans Memorial Park.",
+      photo: "photos/veteranspark-woodland-leaves.jpg",
+      photos: ["photos/veteranspark-woodland-leaves.jpg", "photos/veteranspark-berries.jpg"] }
+  ];
+
+  // ---- Legacy local reports (kept visible, never silently uploaded) --------
   var KEY = "llama-invasives-prototype-v1";
   var memory = [];
   var storageOK = true;
@@ -313,7 +358,9 @@
     try { localStorage.setItem(KEY, JSON.stringify(list)); return true; }
     catch (e) { storageOK = false; return false; }
   }
-  var mine = loadMine();
+  var mine = loadMine().map(function (s) { s.legacyLocal = true; return s; });
+  var serverSightings = [];
+  var approvedTips = [];
 
   // ---- Map ----------------------------------------------------------------
   var map = L.map("map", { zoomControl: true }).setView([42.861, -73.81], 11);
@@ -346,7 +393,7 @@
   };
   legend.addTo(map);
 
-  function allSightings() { return examples.concat(mine); }
+  function allSightings() { return examples.concat(OWNER_ADDED, serverSightings, mine); }
 
   function popupFor(s) {
     var plant = PLANT_BY_ID[s.species] || PLANT_BY_ID.unsure;
@@ -356,13 +403,18 @@
     h.innerHTML = '<span class="dot" style="background:' + plant.color + '"></span>';
     h.appendChild(document.createTextNode(plant.name));
     box.appendChild(h);
-    if (s.photo) { var img = document.createElement("img"); img.src = s.photo; img.alt = plant.name; box.appendChild(img); }
+    var photos = s.photos || (s.photo ? [s.photo] : []);
+    photos.forEach(function (src, i) {
+      var img = document.createElement("img"); img.src = src;
+      img.alt = plant.name + (photos.length > 1 ? " photo " + (i + 1) : ""); box.appendChild(img);
+    });
     if (s.notes) { var p = document.createElement("p"); p.textContent = s.notes; p.style.margin = "4px 0"; box.appendChild(p); }
     var meta = document.createElement("div");
     meta.className = "meta";
-    meta.textContent = [formatDate(s.date), s.near ? "near " + s.near : null, s.example ? "Example" : "Reported by " + (s.initials || "?")].filter(Boolean).join(" · ");
+    meta.textContent = [formatDate(s.date), s.near ? "near " + s.near : null,
+      s.example ? "Example" : (s.ownerAdded ? "Added to tracker" : (s.server ? "Approved report" : (s.legacyLocal ? "Saved on this device" : "Reported by " + (s.initials || "?"))))].filter(Boolean).join(" · ");
     box.appendChild(meta);
-    if (!s.example) {
+    if (!s.example && !s.ownerAdded && !s.server) {
       var del = document.createElement("button");
       del.className = "btn danger"; del.type = "button"; del.textContent = "Delete this report";
       del.onclick = function () { removeMine(s.id); };
@@ -397,14 +449,15 @@
     list.innerHTML = "";
     var filter = document.getElementById("filter").value;
     var items = allSightings().filter(function (s) { return !filter || s.species === filter; })
-      .sort(function (a, b) { return (b.example ? 0 : 1) - (a.example ? 0 : 1) || (b.date || "").localeCompare(a.date || ""); });
+      .sort(function (a, b) { return (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (b.example ? 0 : 1) - (a.example ? 0 : 1) || (b.date || "").localeCompare(a.date || ""); });
     if (!items.length) { var e = document.createElement("p"); e.className = "muted"; e.textContent = "No sightings of this plant yet."; list.appendChild(e); }
     items.forEach(function (s) {
       var plant = PLANT_BY_ID[s.species] || PLANT_BY_ID.unsure;
       var b = document.createElement("button");
       b.type = "button"; b.className = "sighting";
       var thumb;
-      if (s.photo) { thumb = document.createElement("img"); thumb.src = s.photo; thumb.alt = ""; thumb.className = "thumb"; }
+      var thumbPhoto = s.photo || (s.photos && s.photos[0]);
+      if (thumbPhoto) { thumb = document.createElement("img"); thumb.src = thumbPhoto; thumb.alt = ""; thumb.className = "thumb"; }
       else { thumb = document.createElement("div"); thumb.className = "thumb"; thumb.textContent = "🌿"; }
       b.appendChild(thumb);
       var body = document.createElement("div");
@@ -413,12 +466,13 @@
       t.appendChild(document.createTextNode(plant.name));
       var tag = document.createElement("span");
       tag.className = "tag" + (s.example ? "" : " mine");
-      tag.textContent = s.example ? "Example" : "Yours";
+      tag.textContent = s.example ? "Example" : (s.ownerAdded ? "Added" : (s.server ? "Approved" : (s.legacyLocal ? "On this device" : "Yours")));
       t.appendChild(tag);
       body.appendChild(t);
       var meta = document.createElement("div");
       meta.className = "meta";
-      meta.textContent = [formatDate(s.date), s.near ? "near " + s.near : "", s.example ? "" : (s.initials || "")].filter(Boolean).join(" · ");
+      meta.textContent = [formatDate(s.date), s.near ? "near " + s.near : "",
+        (s.example || s.ownerAdded || s.server || s.legacyLocal) ? "" : (s.initials || "")].filter(Boolean).join(" · ");
       body.appendChild(meta);
       if (s.notes) { var n = document.createElement("div"); n.className = "meta"; n.textContent = s.notes.length > 90 ? s.notes.slice(0, 90) + "…" : s.notes; body.appendChild(n); }
       b.appendChild(body);
@@ -432,14 +486,77 @@
 
   function refresh() { drawMarkers(); drawList(); }
 
+  function loadApprovedSightings() {
+    fetch("sightings.json", { cache: "no-store" })
+      .then(function (response) { return response.ok ? response.json() : []; })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) { return; }
+        serverSightings = rows.filter(function (s) {
+          return s && typeof s.id === "string" && Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng)) && PLANT_BY_ID[s.species];
+        }).map(function (s) {
+          s.server = true;
+          if (!s.near) { s.near = nearestPark(Number(s.lat), Number(s.lng)); }
+          return s;
+        });
+        refresh();
+      })
+      .catch(function () { serverSightings = []; refresh(); });
+  }
+
+  function safeHttpUrl(value) {
+    if (!value) { return null; }
+    try {
+      var url = new URL(value);
+      return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+    } catch (e) { return null; }
+  }
+
+  function renderTipsForPlant(species) {
+    var host = document.getElementById("community-tips-" + species);
+    if (!host) { return; }
+    host.innerHTML = "";
+    var rows = approvedTips.filter(function (tip) { return tip.species === species; });
+    if (!rows.length) { host.hidden = true; return; }
+    host.hidden = false;
+    var heading = document.createElement("h4"); heading.textContent = "Community tips"; host.appendChild(heading);
+    var list = document.createElement("ul");
+    rows.forEach(function (tip) {
+      var item = document.createElement("li");
+      var text = document.createElement("span"); text.textContent = tip.tip; item.appendChild(text);
+      var source = safeHttpUrl(tip.source);
+      if (source) {
+        var link = document.createElement("a"); link.href = source; link.target = "_blank"; link.rel = "noreferrer";
+        link.textContent = " Source"; item.appendChild(link);
+      }
+      list.appendChild(item);
+    });
+    host.appendChild(list);
+  }
+
+  function loadApprovedTips() {
+    fetch("tips.json", { cache: "no-store" })
+      .then(function (response) { return response.ok ? response.json() : []; })
+      .then(function (rows) {
+        if (!Array.isArray(rows)) { return; }
+        approvedTips = rows.filter(function (tip) {
+          return tip && PLANT_BY_ID[tip.species] && tip.species !== "unsure" && typeof tip.tip === "string";
+        });
+        PLANTS.forEach(function (plant) { renderTipsForPlant(plant.id); });
+      })
+      .catch(function () { approvedTips = []; });
+  }
+
   // ---- Filter and plant selects --------------------------------------------
   var filterSel = document.getElementById("filter");
   var opt = document.createElement("option"); opt.value = ""; opt.textContent = "All plants"; filterSel.appendChild(opt);
   var speciesSel = document.getElementById("species");
   var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Choose a plant…"; speciesSel.appendChild(o0);
+  var tipSpeciesSel = document.getElementById("tip-species");
+  var tipSpeciesStart = document.createElement("option"); tipSpeciesStart.value = ""; tipSpeciesStart.textContent = "Choose a plant…"; tipSpeciesSel.appendChild(tipSpeciesStart);
   PLANTS.forEach(function (p) {
     var a = document.createElement("option"); a.value = p.id; a.textContent = p.name; filterSel.appendChild(a);
     var b = document.createElement("option"); b.value = p.id; b.textContent = p.name; speciesSel.appendChild(b);
+    if (p.id !== "unsure") { var c = document.createElement("option"); c.value = p.id; c.textContent = p.name; tipSpeciesSel.appendChild(c); }
   });
   filterSel.onchange = refresh;
 
@@ -456,8 +573,49 @@
     var s = document.createElement("div"); s.className = "sci"; s.textContent = p.sci; d.appendChild(s);
     var w = document.createElement("p"); w.innerHTML = "<b>Where:</b> "; w.appendChild(document.createTextNode(p.where)); d.appendChild(w);
     var k = document.createElement("p"); k.innerHTML = "<b>How to spot it:</b> "; k.appendChild(document.createTextNode(p.spot)); d.appendChild(k);
+    if (p.id === "bittersweet") {
+      var tipsButton = document.createElement("button");
+      tipsButton.type = "button"; tipsButton.className = "btn secondary";
+      tipsButton.textContent = "Tips for removing bittersweet";
+      tipsButton.setAttribute("aria-expanded", "false");
+      var tips = document.createElement("div"); tips.className = "removal-tips"; tips.hidden = true;
+      var tipsList = document.createElement("ul");
+      [
+        "At a park, tell park staff first. Don't pull or cut plants, or use weed killer, without permission.",
+        "Adults can hand-pull young seedlings when the soil is moist, removing the roots. Check the area again for regrowth.",
+        "For established vines, cutting can be repeated to control regrowth. Do not pull cut vines out of trees; falling vines can damage branches or injure someone.",
+        "Bag any fruiting plant material and put it in the trash. Don't compost it or use it for decorations.",
+        "Large vines and herbicide treatments need a trained adult or land manager. Follow all product labels and site rules."
+      ].forEach(function (text) { var li = document.createElement("li"); li.textContent = text; tipsList.appendChild(li); });
+      tips.appendChild(tipsList);
+      var sourceNote = document.createElement("p"); sourceNote.className = "muted";
+      sourceNote.innerHTML = 'Sources: <a href="https://extension.umd.edu/resource/invasives-your-woodland-oriental-bittersweet-updated-2025/" target="_blank" rel="noreferrer">University of Maryland Extension</a> and <a href="https://extension.psu.edu/oriental-bittersweet" target="_blank" rel="noreferrer">Penn State Extension</a>.';
+      tips.appendChild(sourceNote);
+      tipsButton.onclick = function () {
+        tips.hidden = !tips.hidden;
+        tipsButton.setAttribute("aria-expanded", tips.hidden ? "false" : "true");
+      };
+      d.appendChild(tipsButton); d.appendChild(tips);
+    }
+    var tipButton = document.createElement("button");
+    tipButton.type = "button"; tipButton.className = "btn secondary"; tipButton.textContent = "Share a tip";
+    tipButton.setAttribute("aria-label", "Share a mitigation tip for " + p.name);
+    tipButton.style.marginTop = "10px";
+    tipButton.onclick = function () {
+      var form = document.getElementById("tip-form");
+      tipSpeciesSel.value = p.id;
+      document.getElementById("tip-form-title").textContent = "Share a mitigation tip for " + p.name;
+      document.getElementById("tip-msg").hidden = true;
+      form.hidden = false;
+      form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      document.getElementById("tip-text").focus({ preventScroll: true });
+    };
+    d.appendChild(tipButton);
+    var communityTips = document.createElement("div"); communityTips.id = "community-tips-" + p.id;
+    communityTips.className = "community-tips"; communityTips.hidden = true; d.appendChild(communityTips);
     guide.appendChild(d);
   });
+  loadApprovedTips();
 
   // ---- Tabs ---------------------------------------------------------------
   var tabs = ["sightings", "report", "guide", "how"];
@@ -513,6 +671,10 @@
     var prev = document.getElementById("photo-preview");
     photoData = null; prev.hidden = true;
     if (!file) { return; }
+    if (file.size > 20 * 1024 * 1024) {
+      var sizeMsg = document.getElementById("form-msg"); sizeMsg.hidden = false; sizeMsg.className = "notice";
+      sizeMsg.textContent = "That photo is very large. Choose a smaller photo and try again."; return;
+    }
     var reader = new FileReader();
     reader.onload = function () {
       var img = new Image();
@@ -548,26 +710,100 @@
     if (!spot) { problems.push("pick the spot on the map"); }
     if (!species) { problems.push("choose a plant"); }
     if (!initials) { problems.push("add your initials"); }
+    if (!photoData) { problems.push("add a photo"); }
     if (problems.length) { msg.hidden = false; msg.className = "notice"; msg.textContent = "Please " + problems.join(", ") + "."; return; }
-    var s = { id: "me" + Date.now(), lat: spot.lat, lng: spot.lng, species: species,
-      notes: document.getElementById("notes").value.trim(), initials: initials,
-      date: document.getElementById("date").value, photo: photoData, near: nearestPark(spot.lat, spot.lng) };
-    var next = mine.concat([s]);
-    if (!saveMine(next)) {
-      // Storage full or blocked: keep it for this visit, and try once without the photo.
-      s.photo = null;
-      next = mine.concat([s]);
-      saveMine(next);
-    }
-    mine = next;
-    resetForm();
-    filterSel.value = "";
-    refresh();
-    showTab("sightings");
-    map.flyTo([s.lat, s.lng], 16, { duration: 0.8 });
-    setTimeout(function () { if (markers[s.id]) { markers[s.id].openPopup(); } }, 850);
+    var binary = atob(photoData.split(",")[1]);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+    var body = new FormData();
+    body.append("species", species);
+    body.append("initials", initials);
+    body.append("notes", document.getElementById("notes").value.trim());
+    body.append("date", document.getElementById("date").value);
+    body.append("lat", String(spot.lat));
+    body.append("lng", String(spot.lng));
+    body.append("website", document.getElementById("website").value);
+    body.append("photo", new Blob([bytes], { type: "image/jpeg" }), "plant-report.jpg");
+
+    var saveButton = document.getElementById("save");
+    saveButton.disabled = true;
+    msg.hidden = false; msg.className = "notice"; msg.textContent = "Saving your report…";
+    fetch("api/submit.php", { method: "POST", body: body, credentials: "same-origin" })
+      .then(function (response) {
+        return response.text().then(function (text) {
+          var result;
+          try { result = JSON.parse(text); }
+          catch (e) { throw new Error("The report service is not available here. Please try again after the site is deployed."); }
+          if (!response.ok || !result.ok) { throw new Error(result.error || "The report could not be saved."); }
+          return result;
+        });
+      })
+      .then(function (result) {
+        resetForm();
+        msg = document.getElementById("form-msg");
+        msg.hidden = false; msg.className = "notice ok";
+        msg.textContent = result.message || "Report saved for adult review.";
+      })
+      .catch(function (error) {
+        msg.hidden = false; msg.className = "notice";
+        msg.textContent = error.message || "The report could not be saved. Please try again later.";
+      })
+      .finally(function () { saveButton.disabled = false; });
   };
   document.getElementById("cancel").onclick = function () { resetForm(); showTab("sightings"); };
+
+  document.getElementById("tip-form").onsubmit = function (e) {
+    e.preventDefault();
+    var msg = document.getElementById("tip-msg");
+    var species = tipSpeciesSel.value;
+    var tip = document.getElementById("tip-text").value.trim();
+    var sourceRaw = document.getElementById("tip-source").value.trim();
+    var source = safeHttpUrl(sourceRaw);
+    if (!species || species === "unsure" || !PLANT_BY_ID[species]) {
+      msg.hidden = false; msg.className = "notice"; msg.textContent = "Choose the plant your tip is about."; return;
+    }
+    if (!tip) {
+      msg.hidden = false; msg.className = "notice"; msg.textContent = "Add a short mitigation tip."; return;
+    }
+    if (sourceRaw && !source) {
+      msg.hidden = false; msg.className = "notice"; msg.textContent = "Enter a full source link starting with http:// or https://."; return;
+    }
+    var body = new FormData();
+    body.append("species", species);
+    body.append("tip", tip);
+    body.append("source", source || "");
+    body.append("website", document.getElementById("tip-website").value);
+    var submit = document.getElementById("tip-submit");
+    submit.disabled = true;
+    msg.hidden = false; msg.className = "notice"; msg.textContent = "Sending your tip for review…";
+    fetch("api/submit_tip.php", { method: "POST", body: body, credentials: "same-origin" })
+      .then(function (response) {
+        return response.text().then(function (text) {
+          var result;
+          try { result = JSON.parse(text); }
+          catch (e) { throw new Error("The tip service is not available here. Please try again after the site is deployed."); }
+          if (!response.ok || !result.ok) { throw new Error(result.error || "The tip could not be saved."); }
+          return result;
+        });
+      })
+      .then(function (result) {
+        document.getElementById("tip-text").value = "";
+        document.getElementById("tip-source").value = "";
+        document.getElementById("tip-website").value = "";
+        msg.className = "notice ok";
+        msg.textContent = result.message || "Tip saved for adult review.";
+      })
+      .catch(function (error) {
+        msg.className = "notice";
+        msg.textContent = error.message || "The tip could not be saved. Please try again later.";
+      })
+      .finally(function () { submit.disabled = false; });
+  };
+  document.getElementById("tip-cancel").onclick = function () {
+    document.getElementById("tip-form").reset();
+    document.getElementById("tip-msg").hidden = true;
+    document.getElementById("tip-form").hidden = true;
+  };
 
   function removeMine(id) {
     mine = mine.filter(function (s) { return s.id !== id; });
@@ -582,9 +818,10 @@
 
   resetForm();
   refresh();
+  loadApprovedSightings();
   if (!storageOK) {
     var n = document.createElement("div"); n.className = "notice";
-    n.textContent = "This browser isn't letting the page save, so reports will disappear when you leave.";
+    n.textContent = "Older reports saved on this device could not be loaded.";
     document.getElementById("panel-sightings").prepend(n);
   }
 })();

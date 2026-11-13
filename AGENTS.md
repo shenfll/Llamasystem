@@ -93,21 +93,23 @@ Publishing only adds and replaces files. If you remove or rename a file under `s
 
 **Goal (from Naomi):** an invasive plant tracker for the LLAMA area, similar in spirit to [NY iMapInvasives](https://www.nyimapinvasives.org/) but local, where kids and community members photograph invasive plants, describe them, and see each photo pinned to its location on a map. It should feel like part of the LLAMA System and help teach the team.
 
-**Current prototype** (`site/invasives/index.html`, live at `/invasives/`, not linked, `noindex`):
+**Current tracker** (`site/invasives/index.html`, live at `/invasives/`, not linked from the main site, `noindex`):
 
 - Leaflet map with Mapbox "outdoors" tiles (the same public key and style as the main map) and the LLAMA parks loaded from `../scripts/data.js`.
-- Report flow: pick a spot on the map or use the phone's location, choose a plant, add a photo (resized in the browser to 900px JPEG), description, initials and date.
-- Sightings list with a species filter. Plant guide with 13 common local invasives and a giant hogweed warning. "How it works" tab with a roadmap, safety rules and discussion questions.
-- **Reports are stored only in the visitor's browser (`localStorage`).** Seven example sightings near real parks are clearly marked "Example". Do not present examples as real data.
+- Report flow: pick a spot on the map or use the phone's location, choose a plant, add a photo, description, initials and date. The browser resizes photos to 900px JPEG; `site/invasives/api/submit.php` validates and re-encodes them to strip metadata.
+- New reports and photos are stored privately under `~/llama-data/invasives/` until an adult reviews them at `/invasives/admin/review.php` (protected by the existing LLAMA report-page credentials). Rejected photos are removed. Approved reports are published by `tools/build_invasives.php` on the existing 10-minute cron; the public page reads only approved `sightings.json` data and approved photos.
+- Visitors can submit species-specific community mitigation tips, with an optional source link, from the Plant guide. Tips contain no submitter identity or location, stay in a private queue until adult review, and are published in `tips.json` only after approval. Keep safety warnings visible and reject unsafe or unauthorized removal advice.
+- Seven example sightings near real parks are clearly marked "Example". Do not present examples as real data. Old browser-only reports remain on that device and are not uploaded automatically.
+- The Veterans Memorial Park Oriental bittersweet record uses the team-provided photos under `site/invasives/photos/`. The invasive page alone uses the Capti Bytes logo from `site/invasives/images/` and has a bittersweet removal-tips button with extension references.
 - It is an original design. Do not copy iMapInvasives' branding, layout or text. Link to it as the official state system.
 
 **A real version should:**
 
 1. Store reports on the server with PHP, following the check-in pattern: `site/invasives/api/submit.php` saves a JSON line to a private file under `~/llama-data/invasives/`, and photos to a private folder, never directly into the public web root.
 2. **Strip photo location metadata (EXIF)** before saving. Resizing in a canvas already drops it; keep doing that, and re-check server-side.
-3. Have an adult **review every report** before it is public: a password-protected review page under `site/invasives/admin/` (like `checkin/admin/`) that approves or rejects reports.
-4. Publish approved reports through a cron job that writes a public `sightings.json` and copies approved, resized photos to a public folder. Initials only; no emails.
-5. Validate input: known species list, location within the LLAMA area (warn otherwise), photo size and type limits, and a spam trap field like `submit.php` uses.
+3. Have an adult **review every report and community tip** before it is public: a password-protected review page under `site/invasives/admin/` that approves or rejects reports and tips.
+4. Publish approved reports and tips through a cron job that writes public `sightings.json` and `tips.json`, and copies approved, resized photos to a public folder. Reports show initials only; tips have no submitter attribution or contact details.
+5. Validate input: known species list, location within the LLAMA area (warn otherwise), photo size and type limits, and a spam trap field like `submit.php` uses. Tip source links must use HTTP(S).
 6. Possibly connect to the LLAMA map (invasives near each park) and a challenge or badge, if Naomi wants that. Sharing good reports with NY iMapInvasives would need their process; it can't be automated without their approval.
 
 Keep the prototype working while building the real version; ask Bill and Naomi before replacing it or linking it from the main site.

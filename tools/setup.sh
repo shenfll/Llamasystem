@@ -32,7 +32,7 @@ if [ -z "$PHP" ]; then
     exit 1
 fi
 "$PHP" -v | head -1
-for f in "$REPO"/site/checkin/*.php "$REPO"/site/checkin/admin/*.php "$REPO"/tools/*.php; do
+for f in "$REPO"/site/checkin/*.php "$REPO"/site/checkin/admin/*.php "$REPO"/site/invasives/api/*.php "$REPO"/site/invasives/admin/*.php "$REPO"/tools/*.php; do
     "$PHP" -l "$f" >/dev/null
 done
 echo "All PHP files OK."
